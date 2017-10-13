@@ -1,0 +1,2 @@
+# carousel
+A carousel component
