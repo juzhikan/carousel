@@ -6,23 +6,61 @@ function Carousel (opts) {
     var options = opts || {}
     this.root = getElement(options.root)
     this.itemWrap = this.root.children[0]
+    var items = this.itemWrap.children
+
+    /* 0个或一个元素返回 */
+    if (items.length < 2) return
+
+    /* 对于两个元素的情况进行自动补足 */
+    if (items.length < 3) this.fill(items)
+
     this.items = Array.prototype.slice.call(this.itemWrap.children, 0)
-
-    var length = this.length = this.items.length
-    this.offset = opts.offset || getOffset(this.root)
+    this.length = this.items.length
     this.speed = opts.speed || 300
+    this.indexArray = indexArray(this.length)
 
-    this.indexArray = indexArray(length)
-
-    this.initStyle()
+    this.init()
     this.handleEvent()
+
+    if (opts.interval) {
+        this.interval = opts.interval
+        this.play()
+    }
+}
+
+/*
+** timer的几种状态：
+**  undefined-未设置定时器 
+**  null-设置但清除了定时器 
+**  timerId-执行中的计时器 
+**/
+Carousel.prototype.play = function () {
+    this.timer = setInterval(function () {
+        this.move('left')
+    }.bind(this), this.interval)
+}
+
+Carousel.prototype.stop = function () {
+    if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+    }
+}
+
+Carousel.prototype.handleTransitionEnd = function () {
+    if (this.timer === null) {
+        this.play()
+    }
 }
 
 Carousel.prototype.handleEvent = function () {
     this.itemWrap.addEventListener('touchstart', this.handleTouchStart.bind(this), false)
+    this.itemWrap.addEventListener('transitionend', this.handleTransitionEnd.bind(this), false)
+    window.addEventListener('resize', this.init.bind(this), false)
 }
 
 Carousel.prototype.handleTouchStart = function () {
+    this.stop()
     var touch = event.touches[0]
     this.touchStart = {
         x: touch.pageX,
@@ -49,7 +87,6 @@ Carousel.prototype.handleTouchMove = function () {
 
     if (this.isScrolling) {
         event.preventDefault()
-        // self.stop()
         this.handleMove(delta.x)
     }
 }
@@ -59,7 +96,11 @@ Carousel.prototype.handleTouchEnd = function () {
     this.itemWrap.removeEventListener('touchmove', this.bindTouchMoveFn, false)
     this.itemWrap.removeEventListener('touchend', this.bindTouchEndFn, false)
 
-    if (!this.delta) return
+    if (!this.delta) {
+        this.timer === null && this.play()
+        return
+    }
+
     var interval = Date.now() - this.touchStart.time
     var distance = Math.abs(this.delta.x)
     var isValidSlide = (interval < 250 && distance > 20) || distance > this.offset/2
@@ -77,27 +118,6 @@ Carousel.prototype.handleTouchEnd = function () {
     /* 重置 */
     this.delta = null
     this.isScrolling = false
-}
-
-Carousel.prototype.initStyle = function () {
-
-    this.hideTransform = 'translate(' + this.offset + 'px, 0px) translateZ(0px)'
-
-    this.itemWrap.style.width = this.offset * this.length + 'px'
-
-    var transform = this.getTransform(0)
-    var indexArray = this.indexArray.slice(0)
-    var map = new Array(this.length)
-    var collect = 0
-    while (collect < 3) {
-        map[collect < 2 ? indexArray.shift() : indexArray.pop()] = transform[collect++]
-    }
-
-    this.items.forEach(function(item, i) {
-        item.style.width = this.offset  + 'px'
-        item.style.left = -this.offset*i  + 'px'
-        setStyle(item, map[i] || this.hideTransform, 0)
-    }.bind(this))
 }
 
 Carousel.prototype.move = function (direction) {
@@ -124,14 +144,17 @@ Carousel.prototype.handleMove = function (delta) {
     }
 
     var noSpeedIndex = direction === 'left' ? change[1] : change[2]
-    var hideIndex = direction === 'left' ? indexArray.pop() : indexArray.shift()
 
     change.forEach(function (value, index) {
         var speed = (value === noSpeedIndex || _delta !== 0) ? 0 : this.speed
         setStyle(this.items[value], transform[index], speed)
     }.bind(this))
-
-    _delta === 0 && setStyle(this.items[hideIndex], this.hideTransform, 0)
+    
+    /* 元素个数大于3 并且非手动情况下，处理第四个元素的隐藏 */
+    if (indexArray.length && _delta === 0) {
+        var hideIndex = direction === 'left' ? indexArray.pop() : indexArray.shift()
+        setStyle(this.items[hideIndex], this.hideTransform, 0)
+    }
 }
 
 Carousel.prototype.getTransform = function (delta) {
@@ -141,6 +164,35 @@ Carousel.prototype.getTransform = function (delta) {
         'translate(' + (-this.offset + delta) + 'px, 0px) translateZ(0px)'
     ]
     return resp
+}
+
+Carousel.prototype.init = function () {
+    this.offset = getOffset(this.root)
+    this.hideTransform = 'translate(' + this.offset + 'px, 0px) translateZ(0px)'
+    this.itemWrap.style.width = this.offset * this.length + 'px'
+
+    var transform = this.getTransform(0)
+    var indexArray = this.indexArray.slice(0)
+    var map = new Array(this.length)
+    var collect = 0
+    while (collect < 3) {
+        map[collect < 2 ? indexArray.shift() : indexArray.pop()] = transform[collect++]
+    }
+
+    this.items.forEach(function(item, i) {
+        item.style.width = this.offset  + 'px'
+        item.style.left = -this.offset*i  + 'px'
+        setStyle(item, map[i] || this.hideTransform, 0)
+    }.bind(this))
+}
+
+Carousel.prototype.fill = function (items) {
+    var node1 = items[0]
+    var node2 = items[1]
+    var cloneNode1 = node1.cloneNode(true)
+    var cloneNode2 = node2.cloneNode(true)
+    this.itemWrap.appendChild(cloneNode1)
+    this.itemWrap.appendChild(cloneNode2)
 }
 
 function setStyle (dom, transform, speed) {
