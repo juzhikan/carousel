@@ -26,7 +26,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     path: config.build.assetsRoot,
     publicPath: '/dist/',
     filename: 'carousel.js',
-    library: 'carousel',
+    library: 'Carousel',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },

@@ -8,14 +8,12 @@ function Carousel (opts) {
     this.itemWrap = this.root.children[0]
     this.items = Array.prototype.slice.call(this.itemWrap.children, 0)
 
-    var length = this.items.length
-    this.length = length
+    var length = this.length = this.items.length
     this.offset = opts.offset || getOffset(this.root)
     this.speed = opts.speed || 300
 
     this.indexArray = indexArray(length)
 
-    this.initState()
     this.initStyle()
     this.handleEvent()
 }
@@ -24,19 +22,13 @@ Carousel.prototype.handleEvent = function () {
     this.itemWrap.addEventListener('touchstart', this.handleTouchStart.bind(this), false)
 }
 
-Carousel.prototype.initState = function () {
-    
-}
-
 Carousel.prototype.handleTouchStart = function () {
     var touch = event.touches[0]
-    
     this.touchStart = {
         x: touch.pageX,
         y: touch.pageY,
         time: Date.now()
     }
-    this.isScrolling = false
     this.bindTouchMoveFn = this.handleTouchMove.bind(this)
     this.bindTouchEndFn = this.handleTouchEnd.bind(this)
     this.itemWrap.addEventListener('touchmove', this.bindTouchMoveFn, false)
@@ -63,10 +55,28 @@ Carousel.prototype.handleTouchMove = function () {
 }
 
 Carousel.prototype.handleTouchEnd = function () {
-    var direction = this.delta.x > 0 ? 'right' : 'left'
-    this.move(direction)
+    /* 删除事件，避免叠加 */
     this.itemWrap.removeEventListener('touchmove', this.bindTouchMoveFn, false)
     this.itemWrap.removeEventListener('touchend', this.bindTouchEndFn, false)
+
+    if (!this.delta) return
+    var interval = Date.now() - this.touchStart.time
+    var distance = Math.abs(this.delta.x)
+    var isValidSlide = (interval < 250 && distance > 20) || distance > this.offset/2
+
+    var directions = ['left', 'right']
+    var direction = this.delta.x > 0 ? directions.pop() : directions.shift()
+    var reverseDirection = directions[0]
+
+    if (isValidSlide) {
+        this.move(direction)
+    } else {
+        this.handleMove(reverseDirection)
+    }
+
+    /* 重置 */
+    this.delta = null
+    this.isScrolling = false
 }
 
 Carousel.prototype.initStyle = function () {
@@ -100,15 +110,6 @@ Carousel.prototype.move = function (direction) {
     this.handleMove(direction)
 }
 
-Carousel.prototype.getTransform = function (delta) {
-    var resp = [
-        'translate(' + delta + 'px, 0px) translateZ(0px)',
-        'translate(' + (this.offset + delta) + 'px, 0px) translateZ(0px)',
-        'translate(' + (-this.offset + delta) + 'px, 0px) translateZ(0px)'
-    ]
-    return resp
-}
-
 Carousel.prototype.handleMove = function (delta) {
     var _delta = typeof delta === 'string' ? 0 : delta
     var direction = typeof delta === 'string' ? delta : (delta > 0 ? 'right' : 'left')
@@ -131,6 +132,15 @@ Carousel.prototype.handleMove = function (delta) {
     }.bind(this))
 
     _delta === 0 && setStyle(this.items[hideIndex], this.hideTransform, 0)
+}
+
+Carousel.prototype.getTransform = function (delta) {
+    var resp = [
+        'translate(' + delta + 'px, 0px) translateZ(0px)',
+        'translate(' + (this.offset + delta) + 'px, 0px) translateZ(0px)',
+        'translate(' + (-this.offset + delta) + 'px, 0px) translateZ(0px)'
+    ]
+    return resp
 }
 
 function setStyle (dom, transform, speed) {
@@ -189,5 +199,5 @@ function getElement (el) {
 function warn (text) {
     throw new Error(text)
 }
-    
-export default Carousel
+
+module.exports = Carousel
