@@ -37,4 +37,6 @@
 
 **具体可以查看：**
 [DEMO](https://juzhikan.github.io/carousel/index.html)
+
+**GITHUB**
 [GITHUB](https://github.com/juzhikan/carousel)
