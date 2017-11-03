@@ -5,7 +5,7 @@
 
 ## 用法
 
-ES6
+直接引入dist或者使用npm安装后import
  ```js
  import Carousel from 'Carousel'
 
@@ -37,3 +37,4 @@ ES6
 
 **具体可以查看：**
 [DEMO](https://juzhikan.github.io/carousel/index.html)
+[GITHUB](https://github.com/juzhikan/carousel)
