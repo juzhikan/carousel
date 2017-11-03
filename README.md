@@ -11,7 +11,11 @@ ES6
 
  var c = new Carousel({
     root: 'component-carousel',
-    speed: 300 /* 可选参数，表示滑动速度，默认 300，单位 ms */
+    speed: 300, /* 可选参数，表示滑动速度，默认 300，单位 ms */
+    interval: 3000, /* 可选参数，表示定时器间隔，不传则不开启定时器，单位 ms */
+    onSwitch: function (currentIndex) { /* 可选参数，切换回调，返回切换后index */
+        console.log(currentIndex)
+    } 
  })
 
  ```
@@ -22,7 +26,7 @@ ES6
 
 <div id="component-carousel">
     <ul>
-        <li><img src="xxx"></li>
+        <li><img src="xxx"></li><!-- 元素个数 >= 1, 1时不播放，2时自动补足成4个以便于切换 -->
         <li><img src="xxx"></li>
         <li><img src="xxx"></li>
         <li><img src="xxx"></li>
