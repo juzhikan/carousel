@@ -11,6 +11,8 @@
       }
       #component-carousel {
         overflow: hidden;
+        height: 5.85rem;
+        background-color: #e7e7e7;
       }
       #component-carousel ul {
         position: relative;
@@ -23,8 +25,23 @@
       }
       #component-carousel ul li img {
         width: 100%;
+        height: 5.85rem;
       }
     </style>
+    <script>
+      (function(doc,win){
+        var docEl = document.documentElement,
+        resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+        recacl = function(){
+          var w = docEl.clientWidth || document.body.clientWidth;
+          win.PG_CONFIG = win.PG_CONFIG?win.PG_CONFIG:{};
+          win.PG_CONFIG.rem = 20*(w/375);
+          docEl.style.fontSize = win.PG_CONFIG.rem + 'px';
+        }
+        recacl()
+        win.addEventListener(resizeEvt,recacl);
+      })(document,window)
+    </script>
   </head>
   <body>
     <div id="component-carousel">
@@ -32,7 +49,6 @@
         <li><img src="https://easyread.nosdn.127.net/bfe75dbe46b74c7180fe93a319cc64e1.webp"></li>
         <li><img src="https://easyread.nosdn.127.net/af6a04c83c4147aaaca952c7e3db734e.webp"></li>
       </ul>
-      <button>左移</button>
     </div>
     <!-- built files will be auto injected -->
   </body>

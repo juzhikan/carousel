@@ -1,10 +1,10 @@
-function Carousel (opts) {
+function Carousel (options) {
     if (!(this instanceof Carousel))  {
         warn('Carousel is a constructor and should be called with the `new` keyword')
         return
     }
-    var options = opts || {}
-    this.root = getElement(options.root)
+    var opts = options || {}
+    this.root = getElement(opts.root)
     this.itemWrap = this.root.children[0]
     var items = this.itemWrap.children
 
@@ -17,6 +17,7 @@ function Carousel (opts) {
     this.items = Array.prototype.slice.call(this.itemWrap.children, 0)
     this.length = this.items.length
     this.speed = opts.speed || 300
+    this.onSwitch = opts.onSwitch || function () {}
     this.indexArray = indexArray(this.length)
 
     this.init()
@@ -57,6 +58,8 @@ Carousel.prototype.handleEvent = function () {
     this.itemWrap.addEventListener('touchstart', this.handleTouchStart.bind(this), false)
     this.itemWrap.addEventListener('transitionend', this.handleTransitionEnd.bind(this), false)
     window.addEventListener('resize', this.init.bind(this), false)
+    /* 初次触发onSwitch回调 */
+    this.onSwitch(0)
 }
 
 Carousel.prototype.handleTouchStart = function () {
@@ -120,6 +123,12 @@ Carousel.prototype.handleTouchEnd = function () {
     this.isScrolling = false
 }
 
+/* 获取切换后index,要考虑到自动补足的情况 */
+Carousel.prototype.getIndex = function () {
+    var index = this.indexArray[0]
+    return this.__fill ? index % 2 : index
+}
+
 Carousel.prototype.move = function (direction) {
     var array = this.indexArray
     if (direction === 'left') {
@@ -128,6 +137,7 @@ Carousel.prototype.move = function (direction) {
         array.unshift(array.pop())
     }
     this.handleMove(direction)
+    this.onSwitch(this.getIndex())
 }
 
 Carousel.prototype.handleMove = function (delta) {
@@ -187,6 +197,7 @@ Carousel.prototype.init = function () {
 }
 
 Carousel.prototype.fill = function (items) {
+    this.__fill = true
     var node1 = items[0]
     var node2 = items[1]
     var cloneNode1 = node1.cloneNode(true)
