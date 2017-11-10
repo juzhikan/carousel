@@ -5,9 +5,11 @@
 
 ## 用法
 
-直接引入dist或者使用npm安装后import
+直接引入dist 或者
+使用 npm install carousel-html5 安装后import：
  ```js
- import Carousel from 'Carousel'
+ 
+ import Carousel from 'carousel-html5'
 
  var c = new Carousel({
     root: 'component-carousel',
@@ -20,14 +22,14 @@
 
  ```
 
-要求 `#root` 是以下结构：  
+要求 `#root` 是以下类似的三级结构：  
 
 ```html
 
 <div id="component-carousel">
-    <ul>
+    <ul><!-- 不要求必须使用ul标签 -->
         <li><img src="xxx"></li><!-- 元素个数 >= 1, 1时不播放，2时自动补足成4个以便于切换 -->
-        <li><img src="xxx"></li>
+        <li><img src="xxx"></li><!-- 不要求必须使用li标签 -->
         <li><img src="xxx"></li>
         <li><img src="xxx"></li>
         <li><img src="xxx"></li>
