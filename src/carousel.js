@@ -56,6 +56,7 @@ Carousel.prototype.handleTransitionEnd = function () {
 
 Carousel.prototype.handleEvent = function () {
     this.itemWrap.addEventListener('touchstart', this.handleTouchStart.bind(this), false)
+    this.itemWrap.addEventListener('touchmove', this.handleTouchMove.bind(this), false)
     this.itemWrap.addEventListener('transitionend', this.handleTransitionEnd.bind(this), false)
     window.addEventListener('resize', this.init.bind(this), false)
     /* 初次触发onSwitch回调 */
@@ -70,13 +71,14 @@ Carousel.prototype.handleTouchStart = function () {
         y: touch.pageY,
         time: Date.now()
     }
-    this.bindTouchMoveFn = this.handleTouchMove.bind(this)
+    
     this.bindTouchEndFn = this.handleTouchEnd.bind(this)
-    this.itemWrap.addEventListener('touchmove', this.bindTouchMoveFn, false)
+    //this.itemWrap.addEventListener('touchmove', this.bindTouchMoveFn, false)
     this.itemWrap.addEventListener('touchend', this.bindTouchEndFn, false)
 }
 
 Carousel.prototype.handleTouchMove = function () {
+
     if (event.touches.length > 1 || event.scale && event.scale !== 1) return
 
     var touch = event.touches[0]
@@ -86,7 +88,7 @@ Carousel.prototype.handleTouchMove = function () {
         y: touch.pageY - touchStart.y
     }
 
-    this.isScrolling = this.isScrolling || Math.abs(delta.x) > Math.abs(delta.y)
+    this.isScrolling = this.isScrolling || Math.abs(delta.x) > Math.abs(delta.y) // this.isScrolling || 防止出现先水平后垂直走位
 
     if (this.isScrolling) {
         event.preventDefault()
@@ -96,10 +98,10 @@ Carousel.prototype.handleTouchMove = function () {
 
 Carousel.prototype.handleTouchEnd = function () {
     /* 删除事件，避免叠加 */
-    this.itemWrap.removeEventListener('touchmove', this.bindTouchMoveFn, false)
+    //this.itemWrap.removeEventListener('touchmove', this.bindTouchMoveFn, false)
     this.itemWrap.removeEventListener('touchend', this.bindTouchEndFn, false)
-
-    if (!this.delta) {
+    
+    if (!this.isScrolling) {
         this.timer === null && this.play()
         return
     }
